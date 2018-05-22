@@ -150,6 +150,13 @@
                         + MBEDTLS_SSL_PADDING_ADD                \
                         )
 
+#define MBEDTLS_SSL_BUFFER_OVERHEAD  (                         \
+                        + MBEDTLS_SSL_COMPRESSION_ADD          \
+                        + 29 /* counter + header + IV */       \
+                        + MBEDTLS_SSL_MAC_ADD                  \
+                        + MBEDTLS_SSL_PADDING_ADD )
+
+#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN + MBEDTLS_SSL_BUFFER_OVERHEAD )
 /*
  * Check that we obey the standard's message size bounds
  */
@@ -166,9 +173,6 @@
    long, we're internally using 8 bytes to store the
    implicit sequence number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
-
-#define MBEDTLS_SSL_BUFFER_LEN  \
-    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN ) )
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content
@@ -621,6 +625,12 @@ int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
+int mbedtls_ssl_alloc_record_buf( mbedtls_ssl_context *ssl,
+                                  mbedtls_ssl_record *rec,
+                                  size_t max_content_len );
+int mbedtls_ssl_confirm_content_len( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_record *rec,
+                                     size_t content_len );
 /* constant-time buffer comparison */
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
